@@ -27,7 +27,7 @@ const run = async() => {
 run().catch(console.dir);
 
 const addPlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, character) => {
-    await client().db("Ranking_DB").collection("Players").insertOne({
+    await client.db("Ranking_DB").collection("Players").insertOne({
         steamID: steamID,
         names:[playerName1],
         wins:(didPlayerWin?1:0),
@@ -44,7 +44,7 @@ const addPlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, cha
 };
 
 const updatePlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, character) => {
-    await client().db("Ranking_DB").collection("Players").updateMany({
+    await client.db("Ranking_DB").collection("Players").updateMany({
         steamID: steamID
     },{
         $inc:{
@@ -63,13 +63,11 @@ const updatePlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, 
 };
 
 const getPlayerFromDB = async(steamID) => {
-    const res = await client().db("Ranking_DB").collection("Players").findOne({
+    const res = await client.db("Ranking_DB").collection("Players").findOne({
         steamID:steamID
     });
-    if(res == null){
-        return false;
-    }
-    return true;
+    return (res?true:false);
+
 };
 
 module.exports = {
