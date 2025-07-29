@@ -17,7 +17,7 @@ const run = async() => {
     try {
         await client.connect();
 
-        await client.db("admin").command({ping: 1});
+        await client.db("Ranking_DB").command({ping: 1});
 
         console.log("Connected to DB")
     } finally {
