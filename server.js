@@ -3,11 +3,12 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const binaryParser = require('binary-parser');
 
-const {run, addPlayerToDB} = require('./modules/mongoDB/mongoDB.js');
+const {run, addPlayerToDB, updatePlayerToDB} = require('./modules/mongoDB/mongoDB.js');
 
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 app.use('/upload', express.raw({type: 'application/octet-stream', limit: '10mb'}));
 
@@ -15,8 +16,8 @@ app.get('/', (req, res) => {
     res.send('This better be working');
 });
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server running on port:${process.env.PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server running on port:${PORT}`);
 });
 
 app.post('/upload', (req, res) => {
@@ -39,7 +40,7 @@ app.post('/upload', (req, res) => {
     }
 
     addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?p1_toon:p2_toon));
-    
+
     res.status(201).send('upload'+ req.body);
 });
 

@@ -64,5 +64,6 @@ const updatePlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, 
 
 module.exports = {
     run,
-    addPlayerToDB
+    addPlayerToDB,
+    updatePlayerToDB
 }
