@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const binaryParser = require('binary-parser');
 
-const {run, addPlayerToDB, updatePlayerToDB} = require('./modules/mongoDB/mongoDB.js');
+const {run, addPlayerToDB, updatePlayerToDB, getPlayerFromDB} = require('./modules/mongoDB/mongoDB.js');
 
 dotenv.config();
 
@@ -38,8 +38,12 @@ app.post('/upload', (req, res) => {
     }else if(metadata.winner == 1){
         win = true;
     }
+    if(getPlayerFromDB(metadata.recorder_steamid64)){
+        updatePlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?p1_toon:p2_toon));
 
-    addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?p1_toon:p2_toon));
+    }else{
+        addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?p1_toon:p2_toon));
+    }
 
     res.status(201).send('upload'+ req.body);
 });

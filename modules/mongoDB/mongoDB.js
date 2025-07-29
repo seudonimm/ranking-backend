@@ -62,8 +62,19 @@ const updatePlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, 
     })
 };
 
+const getPlayerFromDB = async(steamID) => {
+    const res = await client().db("Ranking_DB").collection("Players").findOne({
+        steamID:steamID
+    });
+    if(res == null){
+        return false;
+    }
+    return true;
+};
+
 module.exports = {
     run,
     addPlayerToDB,
-    updatePlayerToDB
+    updatePlayerToDB,
+    getPlayerFromDB
 }
