@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const binaryParser = require('binary-parser');
 
+const {run, addPlayerToDB} = require('./modules/mongoDB/mongoDB.js');
+
 dotenv.config();
 
 const app = express();
@@ -13,21 +15,31 @@ app.get('/', (req, res) => {
     res.send('This better be working');
 });
 
-const PORT = 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on https://localhost:${PORT}`);
+app.listen(process.env.PORT, () => {
+    console.log(`Server running on port:${process.env.PORT}`);
 });
 
-
 app.post('/upload', (req, res) => {
-    // res.status(201).json(req.body);
     const buffer = req.body;
     const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
     
     const metadata = parseReplay(arrayBuffer);
     
     console.log('working', metadata);
+
+    let win = false;
+    let playerNum = 2
+    if(metadata.recorder_steamid64 == metadata.p1_steamid64){
+        if(metadata.winner == 0){
+            win = true;
+        }
+        playerNum = 1;
+    }else if(metadata.winner == 1){
+        win = true;
+    }
+
+    addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?p1_toon:p2_toon));
+    
     res.status(201).send('upload'+ req.body);
 });
 
