@@ -39,9 +39,39 @@ app.post('/upload', async(req, res) => {
         win = true;
     }
     if(await getPlayerFromDB(metadata.recorder_steamid64)){
-        await updatePlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder);
+        await updatePlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
     }else{
-        await addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder);
+        await addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
+    }
+
+    res.status(201).send('upload'+ req.body);
+});
+
+app.post('/uploadtest', async(req, res) => {
+    const metadata = {
+        recorder_steamid64: '76561198085757650', 
+        p1_name: 'seudo nimm', 
+        p2_name: 'otherguy', 
+        p1_toon: 27,
+        p2_toon: 1,
+        recorder:'seudo nimm'
+    }
+    console.log('working test', metadata);
+
+    let win = false;
+    let playerNum = 2
+    if(metadata.recorder_steamid64 == metadata.p1_steamid64){
+        if(metadata.winner == 0){
+            win = true;
+        }
+        playerNum = 1;
+    }else if(metadata.winner == 1){
+        win = true;
+    }
+    if(await getPlayerFromDB(metadata.recorder_steamid64)){
+        await updatePlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
+    }else{
+        await addPlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
     }
 
     res.status(201).send('upload'+ req.body);

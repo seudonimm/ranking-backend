@@ -1,6 +1,7 @@
-const {MongoClient, ServerApiVersion} = require('mongodb');
+const {MongoClient, ServerApiVersion, ObjectId} = require('mongodb');
 
 const dotenv = require("dotenv");
+const e = require('express');
 dotenv.config();
 
 const dbUri = `mongodb+srv://jwdusmn:${process.env.MONGO_DB_PASS}@cluster0.fhibu9k.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -32,48 +33,57 @@ const initMongo = async () => {
     }
 };
 
-const addPlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, character, recorderName) => {
+const addPlayerToDB = async(steamID, didPlayerWin, character, recorderName, metadata) => {
     try {
         await initMongo();
-        await client.db("Ranking_DB").collection("Players").insertOne({
-            steamID: steamID,
-            names:[recorderName],
-            wins:(didPlayerWin?1:0),
-            losses:(didPlayerWin?0:1),
-            matches:[{
-                playerName1:playerName1,
-                playerName2:playerName2
-            }],
-            rankScore:1000,
-            characters:[{
-                [character]:1
-            }]
-        })
+        const charArr = Array.from({length:36}, () => 0);
+        //charArr[character] = 1;
+        await client.db("Ranking_DB").collection("Players").updateOne(
+            {
+                _id:new ObjectId("688a340a91770d5582d1f1a0")
+            },
+            {
+                $push:{
+                    players:{
+                        steamID: steamID,
+                        names:[recorderName],
+                        wins:0,
+                        losses:0,
+                        matches:[],
+                        rankScore:1000,
+                        characters:charArr
+                    }
+                }
+            }
+        )
         console.log('entry added');
     } catch (e) {
         console.log(e);
     }
 };
 
-const updatePlayerToDB = async(steamID, playerName1, playerName2, didPlayerWin, character, recorderName) => {
+const updatePlayerToDB = async(steamID, didPlayerWin, character, recorderName, metadata) => {
     try {
         await initMongo();
-        await client.db("Ranking_DB").collection("Players").updateMany({
-            steamID: steamID
-        },{
-            $inc:{
-                [(didPlayerWin?'wins':'losses')]:1,
+        await client.db("Ranking_DB").collection("Players").updateOne(
+            {
+                _id: new ObjectId("688a340a91770d5582d1f1a0")
             },
-            $push:{
-                matches:{
-                    playerName1:playerName1,
-                    playerName2:playerName2
+            {
+                $inc: {
+                    [`players.$[elem].${didPlayerWin ? 'wins' : 'losses'}`]: 1,
+                    [`players.$[elem].characters.${character}`]: 1
                 },
-                characters:{
-                    [character]:1
+                $push: {
+                    'players.$[elem].matches': metadata,
                 }
             },
-        })
+            {
+                arrayFilters: [
+                    { 'elem.steamID': steamID }
+                ]
+            }
+        )
         console.log("entry updated");
     } catch (e) {
         console.log(e);
@@ -84,10 +94,17 @@ const getPlayerFromDB = async(steamID) => {
     try {
         await initMongo();
         const res = await client.db("Ranking_DB").collection("Players").findOne({
-            steamID:steamID
+            _id:new ObjectId("688a340a91770d5582d1f1a0")
         });
-        console.log(res);
-        return (res!=null);
+                console.log(res);
+
+        let exists = false;
+        for(let e of res.players){
+            if(e.steamID == steamID){
+                exists = true;
+            }
+        }
+        return exists;
     } catch (e) {
         console.log(e);
     }
