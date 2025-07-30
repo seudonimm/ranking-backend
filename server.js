@@ -20,7 +20,7 @@ app.listen(PORT, () => {
     console.log(`Server running on port:${PORT}`);
 });
 
-app.post('/upload', (req, res) => {
+app.post('/upload', async(req, res) => {
     const buffer = req.body;
     const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
     
@@ -38,11 +38,10 @@ app.post('/upload', (req, res) => {
     }else if(metadata.winner == 1){
         win = true;
     }
-    if(getPlayerFromDB(metadata.recorder_steamid64)){
-        updatePlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?p1_toon:p2_toon));
-
+    if(await getPlayerFromDB(metadata.recorder_steamid64)){
+        await updatePlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder);
     }else{
-        addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?p1_toon:p2_toon));
+        await addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder);
     }
 
     res.status(201).send('upload'+ req.body);
