@@ -39,9 +39,9 @@ app.post('/upload', async(req, res) => {
         win = true;
     }
     if(await getPlayerFromDB(metadata.recorder_steamid64)){
-        await updatePlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
+        await updatePlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
     }else{
-        await addPlayerToDB(metadata.recorder_steamid64, metadata.p1_name, metadata.p2_name, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
+        await addPlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
     }
 
     res.status(201).send('upload'+ req.body);
