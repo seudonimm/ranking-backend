@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const binaryParser = require('binary-parser');
 
-const {run, addPlayerToDB, updatePlayerToDB, getPlayerFromDB} = require('./modules/mongoDB/mongoDB.js');
+const {run, addPlayerToDB, updatePlayerToDB, getPlayerFromDB, checkPlayerExistsInDB} = require('./modules/mongoDB/mongoDB.js');
 
 dotenv.config();
 
@@ -12,12 +12,18 @@ const PORT = process.env.PORT || 5000;
 
 app.use('/upload', express.raw({type: 'application/octet-stream', limit: '10mb'}));
 
-app.get('/', (req, res) => {
-    res.send('This better be working');
+app.get('/', async(req, res) => {
+
+    const result = await getPlayerFromDB();
+    res.status(200).send(result);
+
 });
 
 app.listen(PORT, () => {
     console.log(`Server running on port:${PORT}`);
+});
+
+app.get('/', (req, res) => {
 });
 
 app.post('/upload', async(req, res) => {
@@ -38,7 +44,7 @@ app.post('/upload', async(req, res) => {
     }else if(metadata.winner == 1){
         win = true;
     }
-    if(await getPlayerFromDB(metadata.recorder_steamid64)){
+    if(await checkPlayerExistsInDB(metadata.recorder_steamid64)){
         await updatePlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
     }else{
         await addPlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
@@ -68,7 +74,7 @@ app.post('/uploadtest', async(req, res) => {
     }else if(metadata.winner == 1){
         win = true;
     }
-    if(await getPlayerFromDB(metadata.recorder_steamid64)){
+    if(await checkPlayerExistsInDB(metadata.recorder_steamid64)){
         await updatePlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
     }else{
         await addPlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);

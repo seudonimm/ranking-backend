@@ -98,22 +98,31 @@ const getPlayerFromDB = async(steamID) => {
         });
                 console.log(res);
 
-        let exists = false;
-        for(let e of res.players){
-            if(e.steamID == steamID){
-                exists = true;
-            }
-        }
-        return exists;
+        return res;
     } catch (e) {
         console.log(e);
     }
 
 };
 
+const checkPlayerExistsInDB = async(steamID) => {
+    const res = await getPlayerFromDB();
+
+    let exists = false;
+    for(let e of res.players){
+        if(e.steamID == steamID){
+            exists = true;
+        }
+    }
+
+    return exists;
+};
+
+
 module.exports = {
     run,
     addPlayerToDB,
     updatePlayerToDB,
-    getPlayerFromDB
+    getPlayerFromDB,
+    checkPlayerExistsInDB
 }
