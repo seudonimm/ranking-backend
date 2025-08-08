@@ -1,29 +1,35 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const binaryParser = require('binary-parser');
 
-const {run, addPlayerToDB, updatePlayerToDB, getPlayerFromDB, checkPlayerExistsInDB} = require('./modules/mongoDB/mongoDB.js');
+const {run, addPlayerToDB, updatePlayerToDB, getPlayerFromDB, getPlayerRankingsFromDB, getAllPlayerRankingsFromDB, getAllPlayersFromDB} = require('./modules/mongoDB/mongoDB.js');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const waitlist = {};
+
 app.use('/upload', express.raw({type: 'application/octet-stream', limit: '10mb'}));
 
+const cors = require('cors');
+app.use(cors());
+
 app.get('/', async(req, res) => {
+    try {
+        const result = await getAllPlayerRankingsFromDB();
+        // const resultPlayers = await getAllPlayersFromDB();
 
-    const result = await getPlayerFromDB();
-    res.status(200).send(result);
+        res.status(200).send(result);
+    } catch (e) {
+        console.log(e)
+        res.status().send(e);
 
+    }
 });
 
 app.listen(PORT, () => {
     console.log(`Server running on port:${PORT}`);
-});
-
-app.get('/', (req, res) => {
 });
 
 app.post('/upload', async(req, res) => {
@@ -34,54 +40,51 @@ app.post('/upload', async(req, res) => {
     
     console.log('working', metadata);
 
-    let win = false;
-    let playerNum = 2
-    if(metadata.recorder_steamid64 == metadata.p1_steamid64){
-        if(metadata.winner == 0){
-            win = true;
-        }
-        playerNum = 1;
-    }else if(metadata.winner == 1){
-        win = true;
-    }
-    if(await checkPlayerExistsInDB(metadata.recorder_steamid64)){
-        await updatePlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
-    }else{
-        await addPlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
-    }
 
+    if(!waitlist[metadata.filename] == metadata){
+        waitlist[metadata.filename] = metadata;
+    }else{
+        delete waitlist[metadata.filename];
+        
+        checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1_name, metadata, metadata.p2_steamid64);
+        checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2_name, metadata, metadata.p1_steamid64);
+    }
     res.status(201).send('upload'+ req.body);
 });
 
-app.post('/uploadtest', async(req, res) => {
-    const metadata = {
-        recorder_steamid64: '76561198085757650', 
-        p1_name: 'seudo nimm', 
-        p2_name: 'otherguy', 
-        p1_toon: 27,
-        p2_toon: 1,
-        recorder:'seudo nimm'
-    }
-    console.log('working test', metadata);
+app.post('/uploadscrape', async(req, res) => {
+    try {
+        const dbRes = await fetch('https://bbreplay.ovh/api/replays');
+        const dbResJson = await dbRes.json();
+        console.log(dbResJson);
+        let count = 0;
+        let interval = setInterval(() => {
+            const metadata = dbResJson.replays[count];
+            console.log('working test', metadata);
+            
+            checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1, metadata, metadata.p2_steamid64);
+            checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2, metadata, metadata.p1_steamid64);
+            count++;
+            if(count >= dbResJson.replays.length){
+                clearInterval(interval);
+            }
+        }, 500);
+        res.status(201).send('scraped but not really'+ req.body);
 
-    let win = false;
-    let playerNum = 2
-    if(metadata.recorder_steamid64 == metadata.p1_steamid64){
-        if(metadata.winner == 0){
-            win = true;
-        }
-        playerNum = 1;
-    }else if(metadata.winner == 1){
-        win = true;
-    }
-    if(await checkPlayerExistsInDB(metadata.recorder_steamid64)){
-        await updatePlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
-    }else{
-        await addPlayerToDB(metadata.recorder_steamid64, win, (playerNum == 1?metadata.p1_toon:metadata.p2_toon), metadata.recorder, metadata);
-    }
+    } catch (e) {
+        res.status(201).send(e);
 
-    res.status(201).send('upload'+ req.body);
+    }
 });
+
+const checkAndAddToDB = async(steamID, didPlayerWin, playerChar, playerName, metadata, opponentID) => {
+    if(await getPlayerFromDB(steamID) && await getPlayerRankingsFromDB(steamID)){
+        await updatePlayerToDB(steamID, didPlayerWin, playerChar, playerName, metadata, opponentID);
+    }else{
+        await addPlayerToDB(steamID, didPlayerWin, playerChar, playerName, metadata);
+    }
+
+};
 
 function parseReplay(arrayBuffer) {
     const view = new DataView(arrayBuffer);
@@ -108,6 +111,21 @@ function parseReplay(arrayBuffer) {
         return BigInt(high) << 32n | BigInt(low);
     }
 
+    function getHashedFilename() {
+        const slice = (start, length) => arrayBuffer.subarray(start, start + length);
+
+        const p1Toon = slice(0x230, 4);
+        const p2Toon = slice(0x234, 4);
+        const p1SteamId = slice(0x9C, 8);
+        const p2SteamId = slice(0x166, 8);
+        const replayInputs = slice(0x8D0, 0x8D0 + 0xF730);
+
+        const combined = Buffer.concat([p1Toon, p2Toon, p1SteamId, p2SteamId, replayInputs]);
+
+        const hash = crypto.createHash('md5').update(combined).digest('hex').slice(0, 25);
+        return hash + '.dat';
+    }
+
     const replay = {
         date1: new Date(readUtf8String(0x38, 0x18)),
         winner: view.getUint8(0x98),
@@ -118,7 +136,8 @@ function parseReplay(arrayBuffer) {
         recorder: readUtf16String(0x240, 0x24),
         p1_steamid64: readUint64LE(0x9C).toString(),
         p2_steamid64: readUint64LE(0x166).toString(),
-        recorder_steamid64: readUint64LE(0x238).toString()
+        recorder_steamid64: readUint64LE(0x238).toString(),
+        filename: getHashedFilename()
     };
 
     return replay;

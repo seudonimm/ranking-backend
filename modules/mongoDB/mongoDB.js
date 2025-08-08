@@ -1,7 +1,8 @@
-const {MongoClient, ServerApiVersion, ObjectId} = require('mongodb');
+const {MongoClient, ServerApiVersion} = require('mongodb');
+
+const {decayDeviation, calcNewRating, calcNewDeviation} = require('../ranking/ranking');
 
 const dotenv = require("dotenv");
-const e = require('express');
 dotenv.config();
 
 const dbUri = `mongodb+srv://jwdusmn:${process.env.MONGO_DB_PASS}@cluster0.fhibu9k.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -33,56 +34,115 @@ const initMongo = async () => {
     }
 };
 
-const addPlayerToDB = async(steamID, didPlayerWin, character, recorderName, metadata) => {
+const addPlayerToDB = async(steamID, didPlayerWin, character, playerName, metadata) => {
     try {
         await initMongo();
+        
         const charArr = Array.from({length:36}, () => 0);
-        //charArr[character] = 1;
-        await client.db("Ranking_DB").collection("Players").updateOne(
+        charArr[character] = 1;
+        const namesArr = [playerName]
+        await client.db("Ranking_DB").collection("Player_Rankings").insertOne(
             {
-                _id:new ObjectId("688a340a91770d5582d1f1a0")
-            },
-            {
-                $push:{
-                    players:{
-                        steamID: steamID,
-                        names:[recorderName],
-                        wins:0,
-                        losses:0,
-                        matches:[],
-                        rankScore:1000,
-                        characters:charArr
-                    }
-                }
-            }
+                steamID: steamID,
+                name: playerName,
+                wins:0,
+                losses:0,
+                matches:[],
+                ranking:{
+                    rankScore: 1500,
+                    deviation: 350
+                },
+                character_id:character
+            }        
         )
+        const playerExist = await getPlayerFromDB(steamID);
+        if(!playerExist){
+            await client.db("Ranking_DB").collection("Players").insertOne(
+                {
+                        steamID: steamID,
+                        names:namesArr,
+                        characters:charArr,
+                        matches:[]
+                } 
+            )
+        }
         console.log('entry added');
     } catch (e) {
         console.log(e);
     }
 };
 
-const updatePlayerToDB = async(steamID, didPlayerWin, character, recorderName, metadata) => {
+const updatePlayerToDB = async(steamID, didPlayerWin, character, playerName, metadata, opponentID) => {
     try {
+        const ownRanking = await getPlayerRankingsFromDB(steamID);
+        const otherRanking = await getPlayerRankingsFromDB(opponentID);
+        
+        console.log(isNaN(ownRanking.ranking.rankScore));
+        console.log(isNaN(ownRanking.ranking.deviation));
+        console.log(isNaN(otherRanking.ranking.rankScore));
+        console.log(isNaN(otherRanking.ranking.deviation));
+
+        let rating = Number(ownRanking.ranking.rankScore)
+        let deviation = Number(ownRanking.ranking.deviation)
+
+        let otherRating = (otherRanking.ranking.rankScore != undefined?Number(otherRanking.ranking.rankScore):1500)
+        let otherDeviation = (otherRanking.ranking.deviation != undefined?Number(otherRanking.ranking.deviation):350)
+        
+
+        console.log(isNaN(rating));
+        console.log(isNaN(deviation));
+        console.log(isNaN(otherRating));
+        console.log(isNaN(otherDeviation));
+
+        const newRating = calcNewRating(
+            rating,
+            deviation,
+            otherRating,
+            otherDeviation,
+            (didPlayerWin)?1:0
+        );
+        console.log(newRating)
+        const newDeviation = calcNewDeviation(
+            rating,
+            deviation,
+            otherRating,
+            otherDeviation
+        );
+        console.log(newDeviation)
         await initMongo();
-        await client.db("Ranking_DB").collection("Players").updateOne(
+        await client.db("Ranking_DB").collection("Player_Rankings").updateOne(
             {
-                _id: new ObjectId("688a340a91770d5582d1f1a0")
+                steamID:steamID
             },
             {
                 $inc: {
-                    [`players.$[elem].${didPlayerWin ? 'wins' : 'losses'}`]: 1,
-                    [`players.$[elem].characters.${character}`]: 1
+                    wins:didPlayerWin?1:0,
+                    losses:didPlayerWin?0:1
                 },
                 $push: {
-                    'players.$[elem].matches': metadata,
+                    matches: {...metadata, rankScore:newRating},
+                },
+                $set:{
+                    ranking: {
+                        rankScore: newRating,
+                        deviation: newDeviation
+                    },
+                    name:playerName
                 }
             },
+        )
+        await client.db("Ranking_DB").collection("Players").updateOne(
             {
-                arrayFilters: [
-                    { 'elem.steamID': steamID }
-                ]
-            }
+                steamID:steamID
+            },
+            {
+                $inc: {
+                    [`characters.${character}`]: 1,
+                },
+                $push: {
+                    matches: {...metadata, rankScore:newRating},
+                }
+            },
         )
         console.log("entry updated");
     } catch (e) {
@@ -94,9 +154,9 @@ const getPlayerFromDB = async(steamID) => {
     try {
         await initMongo();
         const res = await client.db("Ranking_DB").collection("Players").findOne({
-            _id:new ObjectId("688a340a91770d5582d1f1a0")
+            steamID:steamID
         });
-                console.log(res);
+        console.log(res);
 
         return res;
     } catch (e) {
@@ -104,19 +164,47 @@ const getPlayerFromDB = async(steamID) => {
     }
 
 };
+const getPlayerRankingsFromDB = async(steamID) => {
+    try {
+        await initMongo();
+        const res = await client.db("Ranking_DB").collection("Player_Rankings").findOne({
+            steamID:steamID
+        });
 
-const checkPlayerExistsInDB = async(steamID) => {
-    const res = await getPlayerFromDB();
+        console.log(res);
 
-    let exists = false;
-    for(let e of res.players){
-        if(e.steamID == steamID){
-            exists = true;
-        }
+        return res
+    } catch (e) {
+        console.log(e);
     }
 
-    return exists;
 };
+
+const getAllPlayerRankingsFromDB = async(steamID) => {
+    try {
+        await initMongo();
+        const res =  await client.db("Ranking_DB").collection("Player_Rankings").find({}).sort({[`ranking.rankScore`]: -1}).toArray()
+        console.log(res);
+
+        return res
+    } catch (e) {
+        console.log(e);
+    }
+
+};
+const getAllPlayersFromDB = async(steamID) => {
+    try {
+        await initMongo();
+        const res =  await client.db("Ranking_DB").collection("Players").find({}).toArray()
+        console.log(res);
+
+        return res
+    } catch (e) {
+        console.log(e);
+    }
+
+};
+
 
 
 module.exports = {
@@ -124,5 +212,7 @@ module.exports = {
     addPlayerToDB,
     updatePlayerToDB,
     getPlayerFromDB,
-    checkPlayerExistsInDB
+    getPlayerRankingsFromDB,
+    getAllPlayerRankingsFromDB,
+    getAllPlayersFromDB
 }
