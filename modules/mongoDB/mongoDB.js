@@ -94,19 +94,28 @@ const updatePlayerToDB = async(steamID, didPlayerWin, character, playerName, met
         console.log(isNaN(otherRating));
         console.log(isNaN(otherDeviation));
 
+        const decayedDeviation = decayDeviation(
+            deviation,
+            new Date() - new Date(ownRanking.matches[metadata.matches.length - 1].datetime_)
+        )
+        const otherDecayedDeviation = decayDeviation(
+            otherDeviation,
+            new Date() - new Date(otherRanking.matches[metadata.matches.length - 1].datetime_)
+        );
+        
         const newRating = calcNewRating(
             rating,
-            deviation,
+            decayedDeviation,
             otherRating,
-            otherDeviation,
+            otherDecayedDeviation,
             (didPlayerWin)?1:0
         );
         console.log(newRating)
         const newDeviation = calcNewDeviation(
             rating,
-            deviation,
+            decayedDeviation,
             otherRating,
-            otherDeviation
+            otherDecayedDeviation
         );
         console.log(newDeviation)
         await initMongo();

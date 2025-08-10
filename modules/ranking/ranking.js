@@ -1,6 +1,7 @@
 
-//rating period length unsure of how to specify this, so it is currently one
-const RATING_PERIOD_LENGTH = 1;
+//rating period length 
+const RATING_PERIOD_LENGTH = 86400000 * 7; //a week in milliseconds
+
 //initial deviation every player starts with
 const INITIAL_DEVIATION = 350;
 //used to determine how fast deviation decays
@@ -12,14 +13,18 @@ const Q = Math.LN10 / 400.0;
 const decayDeviation = (currDeviation, timeSinceLastRating) => {
     let decayCount = timeSinceLastRating/RATING_PERIOD_LENGTH;
 
-    let deviation = 0;
+    if(decayCount < 1){
+        return currDeviation
+    }else{
+        let deviation = 0;
+        
+        for(let i = 0; i <= decayCount; i++){
+            deviation = Math.sqrt(Math.pow(currDeviation, 2) + Math.pow(C, 2));
+            deviation = Math.min(deviation, INITIAL_DEVIATION);
+        }
+        return deviation;
 
-    for(let i = 0; i <= decayCount; i++){
-        deviation = Math.sqrt(Math.pow(currDeviation, 2) + Math.pow(C, 2));
-        deviation = Math.min(deviation, INITIAL_DEVIATION);
     }
-
-    return deviation;
 }
 
 //g represents how a rating's certainty affects outcome, the lower a deviation the higher g is
