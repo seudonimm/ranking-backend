@@ -1,0 +1,107 @@
+[dotenv@17.2.1] injecting env (2) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.2.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+Server running on port:5000
+Connected to DB
+[dotenv@17.2.1] injecting env (2) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.2.1] injecting env (0) from .env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+Server running on port:5000
+Connected to DB
+[dotenv@17.2.1] injecting env (2) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.2.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Server running on port:5000
+Connected to DB
+[dotenv@17.2.1] injecting env (2) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+[dotenv@17.2.1] injecting env (0) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+Server running on port:5000
+Connected to DB
+TypeError: Cannot read properties of undefined (reading 'buffer')
+    at /home/bitnami/ranking-backend/server.js:25:32
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at next (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:157:13)
+    at Route.dispatch (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:117:3)
+    at handle (/home/bitnami/ranking-backend/node_modules/router/index.js:435:11)
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at /home/bitnami/ranking-backend/node_modules/router/index.js:295:15
+    at processParams (/home/bitnami/ranking-backend/node_modules/router/index.js:582:12)
+    at next (/home/bitnami/ranking-backend/node_modules/router/index.js:291:5)
+    at rawParser (/home/bitnami/ranking-backend/node_modules/body-parser/lib/types/raw.js:63:7)
+TypeError: Cannot read properties of undefined (reading 'buffer')
+    at /home/bitnami/ranking-backend/server.js:25:32
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at next (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:157:13)
+    at Route.dispatch (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:117:3)
+    at handle (/home/bitnami/ranking-backend/node_modules/router/index.js:435:11)
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at /home/bitnami/ranking-backend/node_modules/router/index.js:295:15
+    at processParams (/home/bitnami/ranking-backend/node_modules/router/index.js:582:12)
+    at next (/home/bitnami/ranking-backend/node_modules/router/index.js:291:5)
+    at rawParser (/home/bitnami/ranking-backend/node_modules/body-parser/lib/types/raw.js:63:7)
+TypeError: Cannot read properties of undefined (reading 'buffer')
+    at /home/bitnami/ranking-backend/server.js:25:32
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at next (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:157:13)
+    at Route.dispatch (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:117:3)
+    at handle (/home/bitnami/ranking-backend/node_modules/router/index.js:435:11)
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at /home/bitnami/ranking-backend/node_modules/router/index.js:295:15
+    at processParams (/home/bitnami/ranking-backend/node_modules/router/index.js:582:12)
+    at next (/home/bitnami/ranking-backend/node_modules/router/index.js:291:5)
+    at rawParser (/home/bitnami/ranking-backend/node_modules/body-parser/lib/types/raw.js:63:7)
+TypeError: Cannot read properties of undefined (reading 'buffer')
+    at /home/bitnami/ranking-backend/server.js:25:32
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at next (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:157:13)
+    at Route.dispatch (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:117:3)
+    at handle (/home/bitnami/ranking-backend/node_modules/router/index.js:435:11)
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at /home/bitnami/ranking-backend/node_modules/router/index.js:295:15
+    at processParams (/home/bitnami/ranking-backend/node_modules/router/index.js:582:12)
+    at next (/home/bitnami/ranking-backend/node_modules/router/index.js:291:5)
+    at rawParser (/home/bitnami/ranking-backend/node_modules/body-parser/lib/types/raw.js:63:7)
+TypeError: Cannot read properties of undefined (reading 'buffer')
+    at /home/bitnami/ranking-backend/server.js:25:32
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at next (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:157:13)
+    at Route.dispatch (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:117:3)
+    at handle (/home/bitnami/ranking-backend/node_modules/router/index.js:435:11)
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at /home/bitnami/ranking-backend/node_modules/router/index.js:295:15
+    at processParams (/home/bitnami/ranking-backend/node_modules/router/index.js:582:12)
+    at next (/home/bitnami/ranking-backend/node_modules/router/index.js:291:5)
+    at rawParser (/home/bitnami/ranking-backend/node_modules/body-parser/lib/types/raw.js:63:7)
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
+node:events:496
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: EBADF: bad file descriptor, read
+Emitted 'error' event on ReadStream instance at:
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at errorOrDestroy (node:internal/streams/destroy:239:7)
+    at node:internal/fs/streams:272:9
+    at FSReqCallback.wrapper [as oncomplete] (node:fs:671:5) {
+  errno: -9,
+  code: 'EBADF',
+  syscall: 'read'
+}
+
+Node.js v22.17.0
+[dotenv@17.2.1] injecting env (2) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.2.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Server running on port:5000
+Connected to DB
+TypeError: Cannot read properties of undefined (reading 'buffer')
+    at /home/bitnami/ranking-backend/server.js:25:32
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at next (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:157:13)
+    at Route.dispatch (/home/bitnami/ranking-backend/node_modules/router/lib/route.js:117:3)
+    at handle (/home/bitnami/ranking-backend/node_modules/router/index.js:435:11)
+    at Layer.handleRequest (/home/bitnami/ranking-backend/node_modules/router/lib/layer.js:152:17)
+    at /home/bitnami/ranking-backend/node_modules/router/index.js:295:15
+    at processParams (/home/bitnami/ranking-backend/node_modules/router/index.js:582:12)
+    at next (/home/bitnami/ranking-backend/node_modules/router/index.js:291:5)
+    at rawParser (/home/bitnami/ranking-backend/node_modules/body-parser/lib/types/raw.js:63:7)

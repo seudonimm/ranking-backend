@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const crypto = require('crypto');
 
 const {run, addPlayerToDB, updatePlayerToDB, getPlayerFromDB, getPlayerRankingsFromDB, getAllPlayerRankingsFromDB, getAllPlayersFromDB} = require('./modules/mongoDB/mongoDB.js');
 
@@ -119,7 +120,8 @@ function parseReplay(arrayBuffer) {
     }
 
     function getHashedFilename() {
-        const slice = (start, length) => arrayBuffer.subarray(start, start + length);
+	const buffer = Buffer.from(arrayBuffer)
+        const slice = (start, end) => buffer.slice(start, end);
 
         const p1Toon = slice(0x230, 4);
         const p2Toon = slice(0x234, 4);
