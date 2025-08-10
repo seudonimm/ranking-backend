@@ -94,15 +94,20 @@ const updatePlayerToDB = async(steamID, didPlayerWin, character, playerName, met
         console.log(isNaN(otherRating));
         console.log(isNaN(otherDeviation));
 
-        const decayedDeviation = decayDeviation(
-            deviation,
-            new Date() - new Date(ownRanking.matches[ownRanking.matches.length - 1].datetime_)
-        )
-        const otherDecayedDeviation = decayDeviation(
-            otherDeviation,
-            new Date() - new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_)
-        );
-
+        let decayedDeviation = deviation;
+        if(ownRanking.matches.length > 0){
+            decayedDeviation = decayDeviation(
+                deviation,
+                new Date() - new Date(ownRanking.matches[ownRanking.matches.length - 1].datetime_)
+            );
+        }
+        let otherDecayedDeviation = otherDeviation;
+        if(otherDecayedDeviation.matches.length > 0){
+            otherDecayedDeviation = decayDeviation(
+                otherDeviation,
+                new Date() - new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_)
+            );
+        }
         const newRating = calcNewRating(
             rating,
             decayedDeviation,
