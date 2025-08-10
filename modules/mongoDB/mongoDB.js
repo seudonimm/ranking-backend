@@ -100,7 +100,7 @@ const updatePlayerToDB = async(steamID, didPlayerWin, character, playerName, met
         )
         const otherDecayedDeviation = decayDeviation(
             otherDeviation,
-            new Date() - new Date(otherRanking.matches[ownRanking.matches.length - 1].datetime_)
+            new Date() - new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_)
         );
 
         const newRating = calcNewRating(
