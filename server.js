@@ -43,7 +43,7 @@ app.post('/upload', async(req, res) => {
         console.log('working', metadata);
 
 
-        if(!waitlist[metadata.filename] == metadata){
+        if(!(metadata.filename in waitlist)){
             waitlist[metadata.filename] = metadata;
             res.status(201).send('added to waitlist '+ waitlist);
         }else{
