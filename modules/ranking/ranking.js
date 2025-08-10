@@ -61,7 +61,7 @@ const calcNewRating = (ownRating, ownDeviation, otherRating, otherDeviation, out
     console.log("e" + isNaN(e));
     console.log("d2" + isNaN(d2));
     //return (Q/(1/Math.pow(ownDeviation, 2)) + (1/d2) * g * (outcome - e));
-    return ownRating + (Q / ((1.0 / Math.pow(ownDeviation, 2.0)) + (1.0 / d2)) * g * (outcome - e))
+    return Math.max(1500, ownRating + (Q / ((1.0 / Math.pow(ownDeviation, 2.0)) + (1.0 / d2)) * g * (outcome - e)))
 
 }
 

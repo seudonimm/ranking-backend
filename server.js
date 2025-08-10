@@ -1,20 +1,32 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const crypto = require('crypto');
+const app = express();
+const cors = require('cors');
 
-const {run, addPlayerToDB, updatePlayerToDB, getPlayerFromDB, getPlayerRankingsFromDB, getAllPlayerRankingsFromDB, getAllPlayersFromDB} = require('./modules/mongoDB/mongoDB.js');
+const {
+    run, 
+    addPlayerToDB, 
+    updatePlayerToDB, 
+    getPlayerFromDB, 
+    getPlayerRankingsFromDB, 
+    getAllPlayerRankingsFromDB, 
+    getAllPlayersFromDB
+} = require('./modules/mongoDB/mongoDB.js');
 
 dotenv.config();
 
-const app = express();
 const PORT = process.env.PORT || 5000;
 
 const waitlist = {};
 
 app.use('/upload', express.raw({type: 'application/octet-stream', limit: '10mb'}));
 
-const cors = require('cors');
 app.use(cors());
+
+app.listen(PORT, () => {
+    console.log(`Server running on port:${PORT}`);
+});
 
 app.get('/', async(req, res) => {
     try {
@@ -29,10 +41,6 @@ app.get('/', async(req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port:${PORT}`);
-});
-
 app.post('/upload', async(req, res) => {
     try {
         const buffer = req.body;
@@ -45,7 +53,7 @@ app.post('/upload', async(req, res) => {
 
         if(!(metadata.filename in waitlist)){
             waitlist[metadata.filename] = metadata;
-	    console.log('waitlist: ' + waitlist);
+	        console.log('waitlist: ' + JSON.stringify(waitlist));
             res.status(201).send('added to waitlist '+ waitlist);
         }else{
             delete waitlist[metadata.filename];
