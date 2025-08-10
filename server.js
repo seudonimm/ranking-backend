@@ -33,23 +33,30 @@ app.listen(PORT, () => {
 });
 
 app.post('/upload', async(req, res) => {
-    const buffer = req.body;
-    const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-    
-    const metadata = parseReplay(arrayBuffer);
-    
-    console.log('working', metadata);
-
-
-    if(!waitlist[metadata.filename] == metadata){
-        waitlist[metadata.filename] = metadata;
-    }else{
-        delete waitlist[metadata.filename];
+    try {
+        const buffer = req.body;
+        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
         
-        checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1_name, metadata, metadata.p2_steamid64);
-        checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2_name, metadata, metadata.p1_steamid64);
+        const metadata = parseReplay(arrayBuffer);
+        
+        console.log('working', metadata);
+
+
+        if(!waitlist[metadata.filename] == metadata){
+            waitlist[metadata.filename] = metadata;
+            res.status(201).send('added to waitlist '+ waitlist);
+        }else{
+            delete waitlist[metadata.filename];
+            
+            await checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1_name, metadata, metadata.p2_steamid64);
+            await checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2_name, metadata, metadata.p1_steamid64);
+            res.status(201).send('upload'+ req.body);
+        }
+
+    } catch (e) {
+        console.log(e);
+        res.status(201).send('error: ' + e);
     }
-    res.status(201).send('upload'+ req.body);
 });
 
 app.post('/uploadscrape', async(req, res) => {
