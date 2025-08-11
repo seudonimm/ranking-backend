@@ -110,17 +110,17 @@ const updatePlayerToDB = async(steamID, didPlayerWin, character, playerName, met
         }
         const newRating = calcNewRating(
             rating,
-            decayedDeviation,
+            deviation,
             otherRating,
-            otherDecayedDeviation,
+            otherDeviation,
             (didPlayerWin)?1:0
         );
         console.log(newRating)
         const newDeviation = calcNewDeviation(
             rating,
-            decayedDeviation,
+            deviation,
             otherRating,
-            otherDecayedDeviation
+            otherDeviation
         );
         console.log(newDeviation)
         await initMongo();
