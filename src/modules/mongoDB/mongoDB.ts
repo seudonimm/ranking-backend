@@ -1,7 +1,20 @@
 import dotenv from "dotenv";
 import {decayDeviation, calcNewRating, calcNewDeviation} from '../ranking/ranking'
 
-import {MongoClient, ServerApiVersion} from 'mongodb';
+import {MongoClient, ServerApiVersion, WithId} from 'mongodb';
+import { MetadataType } from "../../types/types";
+
+interface Ranking {
+    matches:Match[]
+    ranking:{
+        rankScore:number,
+        deviation:number
+    }
+}
+
+interface Match{
+    datetime_:string
+}
 
 dotenv.config();
 
@@ -34,7 +47,7 @@ export const initMongo = async () => {
     }
 };
 
-export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata) => {
+export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata:MetadataType) => {
     try {
         await initMongo();
         
@@ -47,7 +60,7 @@ export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, charact
                 name: playerName,
                 wins:0,
                 losses:0,
-                matches:[],
+                matches:[{...metadata, rankScore:1500}],
                 ranking:{
                     rankScore: 1500,
                     deviation: 350
@@ -62,7 +75,7 @@ export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, charact
                         steamID: steamID,
                         names:namesArr,
                         characters:charArr,
-                        matches:[]
+                        matches:[{...metadata, rankScore:1500}]
                 } 
             )
         }
@@ -72,10 +85,19 @@ export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, charact
     }
 };
 
-export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata, opponentID:string) => {
+export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata:MetadataType, opponentID:string) => {
     try {
-        const ownRanking = await getPlayerRankingsFromDB(steamID);
-        const otherRanking = await getPlayerRankingsFromDB(opponentID);
+        const ownRankExistCheck = await getPlayerRankingsFromDB(steamID); 
+        const otherRankExistCheck = await getPlayerRankingsFromDB(opponentID); 
+        
+        if(!ownRankExistCheck){
+            throw new Error("ahh")
+        }
+        if(!otherRankExistCheck){
+            throw new Error("ahh")
+        }
+        const ownRanking:WithId<Ranking> = ownRankExistCheck;
+        const otherRanking:WithId<Ranking> = otherRankExistCheck;
         
         console.log(isNaN(ownRanking.ranking.rankScore));
         console.log(isNaN(ownRanking.ranking.deviation));
@@ -134,7 +156,7 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
                     losses:didPlayerWin?0:1
                 },
                 $push: {
-                    matches: {...metadata, rankScore:newRating},
+                    matches: {...(metadata as any), rankScore:newRating},
                 },
                 $set:{
                     ranking: {
@@ -154,7 +176,7 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
                     [`characters.${character}`]: 1,
                 },
                 $push: {
-                    matches: {...metadata, rankScore:newRating},
+                    matches: {...(metadata as any), rankScore:newRating},
                 }
             },
         )
@@ -167,7 +189,7 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
 export const getPlayerFromDB = async(steamID:string) => {
     try {
         await initMongo();
-        const res = await client.db("Ranking_DB").collection("Players").findOne({
+        const res = await client.db("Ranking_DB").collection<Ranking>("Players").findOne({
             steamID:steamID
         });
         console.log(res);
@@ -181,7 +203,7 @@ export const getPlayerFromDB = async(steamID:string) => {
 export const getPlayerRankingsFromDB = async(steamID:string) => {
     try {
         await initMongo();
-        const res = await client.db("Ranking_DB").collection("Player_Rankings").findOne({
+        const res = await client.db("Ranking_DB").collection<Ranking>("Player_Rankings").findOne({
             steamID:steamID
         });
 
@@ -197,7 +219,7 @@ export const getPlayerRankingsFromDB = async(steamID:string) => {
 export const getAllPlayerRankingsFromDB = async() => {
     try {
         await initMongo();
-        const res =  await client.db("Ranking_DB").collection("Player_Rankings").find({}).sort({[`ranking.rankScore`]: -1}).toArray()
+        const res =  await client.db("Ranking_DB").collection<Ranking>("Player_Rankings").find({}).sort({[`ranking.rankScore`]: -1}).toArray()
         console.log(res);
 
         return res
