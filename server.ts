@@ -1,10 +1,11 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const crypto = require('crypto');
-const app = express();
-const cors = require('cors');
+import express from 'express';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
+import cors from 'cors';
 
-const {
+const app = express();
+
+import {
     run, 
     addPlayerToDB, 
     updatePlayerToDB, 
@@ -12,7 +13,7 @@ const {
     getPlayerRankingsFromDB, 
     getAllPlayerRankingsFromDB, 
     getAllPlayersFromDB
-} = require('./modules/mongoDB/mongoDB.js');
+} from './src/modules/mongoDB/mongoDB.js';
 
 dotenv.config();
 
@@ -36,7 +37,7 @@ app.get('/', async(req, res) => {
         res.status(200).send(result);
     } catch (e) {
         console.log(e)
-        res.status().send(e);
+        res.status(500).send(e);
 
     }
 });
