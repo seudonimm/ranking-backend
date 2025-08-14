@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
-import {decayDeviation, calcNewRating, calcNewDeviation} from '../ranking/ranking'
+import {decayDeviation, calcNewRating, calcNewDeviation} from '../ranking/ranking.ts';
 
-import {MongoClient, ServerApiVersion, WithId} from 'mongodb';
-import { MetadataType } from "../../types/types";
+import {MongoClient, ServerApiVersion} from 'mongodb';
+import type {WithId} from 'mongodb';
+import type { MetadataType } from '../../types/Types.ts';
 
 interface Ranking {
     matches:Match[]
@@ -42,9 +43,14 @@ export const run = async() => {
 run().catch(console.dir);
 
 export const initMongo = async () => {
-    if (!client.topology || !client.topology.isConnected()) {
-        await client.connect();
+    try {
+        await client.connect()
+    } catch (e) {
+        console.log(e);
     }
+    // if (!client.topology || !client.topology.isConnected()) {
+    //     await client.connect();
+    // }
 };
 
 export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata:MetadataType) => {
@@ -58,8 +64,8 @@ export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, charact
             {
                 steamID: steamID,
                 name: playerName,
-                wins:0,
-                losses:0,
+                wins:didPlayerWin?1:0,
+                losses:!didPlayerWin?1:0,
                 matches:[{...metadata, rankScore:1500}],
                 ranking:{
                     rankScore: 1500,
@@ -91,10 +97,10 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
         const otherRankExistCheck = await getPlayerRankingsFromDB(opponentID); 
         
         if(!ownRankExistCheck){
-            throw new Error("ahh")
+            throw new Error("ownRankExistCheck is undefined")
         }
         if(!otherRankExistCheck){
-            throw new Error("ahh")
+            throw new Error("otherRankExistCheck is undefined")
         }
         const ownRanking:WithId<Ranking> = ownRankExistCheck;
         const otherRanking:WithId<Ranking> = otherRankExistCheck;
@@ -116,6 +122,7 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
         console.log(isNaN(otherRating));
         console.log(isNaN(otherDeviation));
 
+        //todo: fix decayDeviation calc
         let decayedDeviation = deviation;
         if(ownRanking.matches.length > 0){
             decayedDeviation = decayDeviation(
@@ -130,6 +137,7 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
                 Number(new Date()) - Number(new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_))
             );
         }
+
         const newRating = calcNewRating(
             rating,
             deviation,
