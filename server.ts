@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import crypto from 'crypto';
 import cors from 'cors';
 
+import type { MetadataType } from './src/types/Types.ts';
 const app = express();
 
 import {
@@ -64,6 +65,7 @@ app.post('/upload', async(req, res) => {
             res.status(201).send('upload'+ req.body);
         }
 
+        await postToReplayDB(buffer);
     } catch (e) {
         console.log(e);
         res.status(201).send('error: ' + e);
@@ -74,7 +76,7 @@ app.post('/upload', async(req, res) => {
 //     try {
 //         const dbRes = await fetch('https://bbreplay.ovh/api/replays');
 //         const dbResJson = await dbRes.json();
-//         console.log(dbResJson);
+//         //console.log(dbResJson);
 //         // let count = 0;
 //         // let interval = setInterval(() => {
 //             const metadata = dbResJson.replays[0];
@@ -87,6 +89,8 @@ app.post('/upload', async(req, res) => {
 //         //         clearInterval(interval);
 //         //     }
 //         // }, 500);
+//         //await postToReplayDB(metadata);
+
 //         res.status(201).send('scraped but not really'+ req.body);
 
 //     } catch (e) {
@@ -95,7 +99,27 @@ app.post('/upload', async(req, res) => {
 //     }
 // });
 
-const checkAndAddToDB = async(steamID, didPlayerWin, playerChar, playerName, metadata, opponentID) => {
+const postToReplayDB = async(buffer) => {
+    try {
+        const post = await fetch('http://50.118.225.175:5000/upload',{
+            method: 'POST',
+            headers: {
+                "Content-Type":"application/octet-stream"
+            },
+            body:buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
+        });
+        if(!post.ok){
+            console.log("EEEEEE " + (await post.text()));
+            throw new Error(`replay not sent replay db; HTTP error ${post.status}`);
+        }else{
+            console.log(`to DB ${await post.json()}`);
+        }
+    } catch (e) {
+        console.log(e);
+    }
+};
+
+const checkAndAddToDB = async(steamID:string, didPlayerWin:boolean, playerChar:number, playerName:string, metadata:MetadataType, opponentID:string) => {
     if(await getPlayerFromDB(steamID) && await getPlayerRankingsFromDB(steamID)){
         await updatePlayerToDB(steamID, didPlayerWin, playerChar, playerName, metadata, opponentID);
     }else{
@@ -145,7 +169,7 @@ function parseReplay(arrayBuffer) {
         return hash + '.dat';
     }
 
-    const replay = {
+    const replay:MetadataType = {
         date1: new Date(readUtf8String(0x38, 0x18)),
         winner: view.getUint8(0x98),
         p1_name: readUtf16String(0xa4, 0x24),
