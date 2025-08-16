@@ -93,8 +93,8 @@ export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, charact
 
 export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata:MetadataType, opponentID:string) => {
     try {
-        const ownRankExistCheck = await getPlayerRankingsFromDB(steamID); 
-        const otherRankExistCheck = await getPlayerRankingsFromDB(opponentID); 
+        const ownRankExistCheck = await getPlayerRankingFromDB(steamID, character); 
+        const otherRankExistCheck = await getPlayerRankingFromDB(opponentID, character); 
         
         if(!ownRankExistCheck){
             throw new Error("ownRankExistCheck is undefined")
@@ -208,11 +208,13 @@ export const getPlayerFromDB = async(steamID:string) => {
     }
 
 };
-export const getPlayerRankingsFromDB = async(steamID:string) => {
+
+export const getPlayerRankingFromDB = async(steamID:string, character_id:number) => {
     try {
         await initMongo();
         const res = await client.db("Ranking_DB").collection<Ranking>("Player_Rankings").findOne({
-            steamID:steamID
+            steamID:steamID,
+            character_id:character_id
         });
 
         console.log(res);
@@ -222,6 +224,21 @@ export const getPlayerRankingsFromDB = async(steamID:string) => {
         console.log(e);
     }
 
+};
+
+export const getAllSpecificPlayerRankingsFromDB = async(steamID:string) => {
+    try {
+        await initMongo();
+        const res = await client.db("Ranking_DB").collection("Player_Rankings").find({
+            steamID: steamID
+        }).toArray();
+
+        console.log(res);
+
+        return res;
+    } catch (e) {
+        console.log(e);
+    }
 };
 
 export const getAllPlayerRankingsFromDB = async() => {
