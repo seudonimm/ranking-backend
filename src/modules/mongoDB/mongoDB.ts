@@ -84,6 +84,8 @@ export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, charact
                         matches:[{...metadata, rankScore:1500}]
                 } 
             )
+        }else{
+            await updatePlayerMatches(steamID, character, metadata, 1500);
         }
         console.log('entry added');
     } catch (e) {
@@ -105,11 +107,6 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
         const ownRanking:WithId<Ranking> = ownRankExistCheck;
         const otherRanking:WithId<Ranking>|undefined|null = otherRankExistCheck;
         
-        console.log(isNaN(ownRanking.ranking.rankScore));
-        console.log(isNaN(ownRanking.ranking.deviation));
-        console.log(isNaN((!otherRanking)?1500:otherRanking.ranking.rankScore));
-        console.log(isNaN((!otherRanking)?350:otherRanking.ranking.deviation));
-
         let rating = Number(ownRanking.ranking.rankScore)
         let deviation = Number(ownRanking.ranking.deviation)
 
@@ -118,12 +115,6 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
         let otherDeviation = ((!otherRanking)?350:otherRanking.ranking.deviation);
         // let otherDeviation = (otherRanking.ranking.deviation != undefined?Number(otherRanking.ranking.deviation):350)
         
-
-        console.log(isNaN(rating));
-        console.log(isNaN(deviation));
-        console.log(isNaN(otherRating));
-        console.log(isNaN(otherDeviation));
-
         //todo: fix decayDeviation calc
         let decayedDeviation = deviation;
         if(ownRanking.matches.length > 0){
@@ -154,7 +145,7 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
             otherRating,
             otherDeviation
         );
-        console.log(newDeviation)
+
         await initMongo();
         await client.db("Ranking_DB").collection("Player_Rankings").updateOne(
             {
@@ -177,23 +168,27 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
                 }
             },
         )
-        await client.db("Ranking_DB").collection("Players").updateOne(
-            {
-                steamID:steamID
-            },
-            {
-                $inc: {
-                    [`characters.${character}`]: 1,
-                },
-                $push: {
-                    matches: {...(metadata as any), rankScore:newRating},
-                }
-            },
-        )
+        await updatePlayerMatches(steamID, character, metadata, newRating)
         console.log("entry updated");
     } catch (e) {
         console.log(e);
     }
+};
+const updatePlayerMatches = async(steamID:string, character:number, metadata:MetadataType, newRating:number) => {
+    await client.db("Ranking_DB").collection("Players").updateOne(
+        {
+            steamID:steamID
+        },
+        {
+            $inc: {
+                [`characters.${character}`]: 1,
+            },
+            $push: {
+                matches: {...(metadata as any), rankScore:newRating},
+            }
+        },
+    )
+
 };
 
 export const getPlayerFromDB = async(steamID:string) => {
