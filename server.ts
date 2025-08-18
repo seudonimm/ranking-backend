@@ -71,8 +71,8 @@ app.post('/upload', async(req, res) => {
         }else{
             delete waitlist[metadata.filename];
             
-            await checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1_name, metadata, metadata.p2_steamid64);
-            await checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2_name, metadata, metadata.p1_steamid64);
+            await checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1_name, metadata, metadata.p2_steamid64, metadata.p2_toon);
+            await checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2_name, metadata, metadata.p1_steamid64, metadata.p1_toon);
             res.status(201).send('upload'+ req.body);
         }
 
@@ -83,32 +83,32 @@ app.post('/upload', async(req, res) => {
     }
 });
 
-// app.post('/uploadscrape', async(req, res) => {
-//     try {
-//         const dbRes = await fetch('https://bbreplay.ovh/api/replays');
-//         const dbResJson = await dbRes.json();
-//         //console.log(dbResJson);
-//         // let count = 0;
-//         // let interval = setInterval(() => {
-//             const metadata = dbResJson.replays[0];
-//             console.log('working test', metadata);
+app.post('/uploadscrape', async(req, res) => {
+    try {
+        const dbRes = await fetch('https://bbreplay.ovh/api/replays');
+        const dbResJson = await dbRes.json();
+        //console.log(dbResJson);
+        // let count = 0;
+        // let interval = setInterval(() => {
+            const metadata = dbResJson.replays[0];
+            console.log('working test', metadata);
             
-//             checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1, metadata, metadata.p2_steamid64);
-//             checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2, metadata, metadata.p1_steamid64);
-//         //     count++;
-//         //     if(count >= dbResJson.replays.length){
-//         //         clearInterval(interval);
-//         //     }
-//         // }, 500);
-//         //await postToReplayDB(metadata);
+            checkAndAddToDB(metadata.p1_steamid64, (metadata.winner == 0), metadata.p1_toon, metadata.p1, metadata, metadata.p2_steamid64, metadata.p2_toon);
+            checkAndAddToDB(metadata.p2_steamid64, (metadata.winner == 1), metadata.p2_toon, metadata.p2, metadata, metadata.p1_steamid64, metadata.p1_toon);
+        //     count++;
+        //     if(count >= dbResJson.replays.length){
+        //         clearInterval(interval);
+        //     }
+        // }, 500);
+        //await postToReplayDB(metadata);
 
-//         res.status(201).send('scraped but not really'+ req.body);
+        res.status(201).send('scraped but not really'+ req.body);
 
-//     } catch (e) {
-//         res.status(201).send(e);
+    } catch (e) {
+        res.status(201).send(e);
 
-//     }
-// });
+    }
+});
 
 const postToReplayDB = async(buffer) => {
     try {
@@ -130,13 +130,13 @@ const postToReplayDB = async(buffer) => {
     }
 };
 
-const checkAndAddToDB = async(steamID:string, didPlayerWin:boolean, playerChar:number, playerName:string, metadata:MetadataType, opponentID:string) => {
+const checkAndAddToDB = async(steamID:string, didPlayerWin:boolean, playerChar:number, playerName:string, metadata:MetadataType, opponentID:string, opponentChar:number) => {
     const player = await getPlayerFromDB(steamID);
     const playerRanking = await getPlayerRankingFromDB(steamID, playerChar);
 
     // const sameChar = ()
     if(player && playerRanking){
-        await updatePlayerToDB(steamID, didPlayerWin, playerChar, playerName, metadata, opponentID);
+        await updatePlayerToDB(steamID, didPlayerWin, playerChar, playerName, metadata, opponentID, opponentChar);
     }else{
         await addPlayerToDB(steamID, didPlayerWin, playerChar, playerName, metadata);
     }

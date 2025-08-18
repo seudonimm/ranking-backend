@@ -91,30 +91,32 @@ export const addPlayerToDB = async(steamID:string, didPlayerWin:boolean, charact
     }
 };
 
-export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata:MetadataType, opponentID:string) => {
+export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata:MetadataType, opponentID:string, opponentChar:number) => {
     try {
         const ownRankExistCheck = await getPlayerRankingFromDB(steamID, character); 
-        const otherRankExistCheck = await getPlayerRankingFromDB(opponentID, character); 
+        const otherRankExistCheck = await getPlayerRankingFromDB(opponentID, opponentChar); 
         
         if(!ownRankExistCheck){
             throw new Error("ownRankExistCheck is undefined")
         }
-        if(!otherRankExistCheck){
-            throw new Error("otherRankExistCheck is undefined")
-        }
+        // if(!otherRankExistCheck){
+        //     throw new Error("otherRankExistCheck is undefined")
+        // }
         const ownRanking:WithId<Ranking> = ownRankExistCheck;
-        const otherRanking:WithId<Ranking> = otherRankExistCheck;
+        const otherRanking:WithId<Ranking>|undefined|null = otherRankExistCheck;
         
         console.log(isNaN(ownRanking.ranking.rankScore));
         console.log(isNaN(ownRanking.ranking.deviation));
-        console.log(isNaN(otherRanking.ranking.rankScore));
-        console.log(isNaN(otherRanking.ranking.deviation));
+        console.log(isNaN((!otherRanking)?1500:otherRanking.ranking.rankScore));
+        console.log(isNaN((!otherRanking)?350:otherRanking.ranking.deviation));
 
         let rating = Number(ownRanking.ranking.rankScore)
         let deviation = Number(ownRanking.ranking.deviation)
 
-        let otherRating = (otherRanking.ranking.rankScore != undefined?Number(otherRanking.ranking.rankScore):1500)
-        let otherDeviation = (otherRanking.ranking.deviation != undefined?Number(otherRanking.ranking.deviation):350)
+        //let otherRating = (otherRanking.ranking.rankScore != undefined?Number(otherRanking.ranking.rankScore):1500)
+        let otherRating = ((!otherRanking)?1500:otherRanking.ranking.rankScore);
+        let otherDeviation = ((!otherRanking)?350:otherRanking.ranking.deviation);
+        // let otherDeviation = (otherRanking.ranking.deviation != undefined?Number(otherRanking.ranking.deviation):350)
         
 
         console.log(isNaN(rating));
@@ -131,12 +133,12 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
             );
         }
         let otherDecayedDeviation = otherDeviation;
-        if(otherRanking.matches.length > 0){
-            otherDecayedDeviation = decayDeviation(
-                otherDeviation,
-                Number(new Date()) - Number(new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_))
-            );
-        }
+        // if(otherRanking.matches.length > 0){
+        //     otherDecayedDeviation = decayDeviation(
+        //         otherDeviation,
+        //         Number(new Date()) - Number(new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_))
+        //     );
+        // }
 
         const newRating = calcNewRating(
             rating,
