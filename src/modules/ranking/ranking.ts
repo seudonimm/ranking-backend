@@ -38,10 +38,8 @@ const calcG = (deviation:number):number => (
 //e represents the expected value of a match
 const calcE = (ownRating:number, ownDeviation:number, otherRating:number, otherDeviation:number):number => {
     let ratingDifference = ownRating - otherRating;
-    console.log(ownDeviation + " " + otherDeviation);
     let g = calcG(Math.sqrt(Math.pow(ownDeviation, 2) + Math.pow(otherDeviation, 2)));
     
-    console.log("g of e"+ isNaN(g))
 
     return 1.0 / (1.0 + Math.pow(10.0, g * ratingDifference / -400.0))
 }
@@ -59,10 +57,6 @@ export const calcNewRating = (ownRating:number, ownDeviation:number, otherRating
     let g = calcG(otherDeviation);
     let e = calcE(ownRating, ownDeviation, otherRating, otherDeviation);
     let d2 = calcD2(ownRating, ownDeviation, otherRating, otherDeviation);
-
-    console.log("G" + isNaN(g));
-    console.log("e" + isNaN(e));
-    console.log("d2" + isNaN(d2));
 
     return Math.max(1500, ownRating + (Q / ((1.0 / Math.pow(ownDeviation, 2.0)) + (1.0 / d2)) * g * (outcome - e)))
 

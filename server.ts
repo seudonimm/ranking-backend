@@ -60,14 +60,14 @@ app.post('/upload', async(req, res) => {
         const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
         
         const metadata = parseReplay(arrayBuffer);
-        
-        console.log('working', metadata);
-
 
         if(!(metadata.filename in waitlist)){
             waitlist[metadata.filename] = metadata;
 	        console.log('waitlist: ' + JSON.stringify(waitlist));
             res.status(201).send('added to waitlist '+ waitlist);
+            setTimeout(() => {
+                delete waitlist[metadata.filename];
+            }, 30000);
         }else{
             delete waitlist[metadata.filename];
             
