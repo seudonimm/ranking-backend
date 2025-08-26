@@ -155,7 +155,8 @@ export const rankingsCalc = (ownRankExistCheck:WithId<Ranking> | null | undefine
 export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, character:number, playerName:string, metadata:MetadataType, opponentID:string, opponentChar:number) => {
     try {
         const matchExists = await client.db("Ranking_DB").collection("Players").findOne({
-            filename:metadata.filename
+            filename:metadata.filename,
+            steamID:steamID
         })
         if(matchExists){
             return;
@@ -167,7 +168,8 @@ export const updatePlayerToDB = async(steamID:string, didPlayerWin:boolean, char
         await initMongo();
         await client.db("Ranking_DB").collection("Player_Rankings").updateOne(
             {
-                steamID:steamID
+                steamID:steamID,
+                character_id: character
             },
             {
                 $inc: {
