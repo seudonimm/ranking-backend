@@ -124,27 +124,36 @@ export const rankingsCalc = (ownRankExistCheck:WithId<Ranking> | null | undefine
             deviation,
             Number(new Date()) - Number(new Date(ownRanking.matches[ownRanking.matches.length - 1].datetime_))
         );
+        if(decayedDeviation <= 0){
+            decayedDeviation = deviation;
+            console.log("decayed to zero")
+        }
     }
     let otherDecayedDeviation = otherDeviation;
-    // if(otherRanking.matches.length > 0){
-    //     otherDecayedDeviation = decayDeviation(
-    //         otherDeviation,
-    //         Number(new Date()) - Number(new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_))
-    //     );
-    // }
+    if(otherRanking && otherRanking.matches.length > 0){
+        otherDecayedDeviation = decayDeviation(
+            otherDeviation,
+            Number(new Date()) - Number(new Date(otherRanking.matches[otherRanking.matches.length - 1].datetime_))
+        );
+        if(otherDecayedDeviation <= 0){
+            otherDecayedDeviation = otherDeviation;
+            console.log("other decayed to zero")
+        }
+
+    }
 
     const newRating = calcNewRating(
         rating,
-        deviation,
+        decayedDeviation,
         otherRating,
-        otherDeviation,
+        otherDecayedDeviation,
         (didPlayerWin)?1:0
     );
     const newDeviation = calcNewDeviation(
         rating,
-        deviation,
+        decayedDeviation,
         otherRating,
-        otherDeviation
+        otherDecayedDeviation
     );
     return {
         newRating,
